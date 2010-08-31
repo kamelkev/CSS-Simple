@@ -60,7 +60,6 @@ sub new {
 
   my $self = {
               stylesheet => undef,
-              css => $css,
               ordered => tie(%{$css}, 'Tie::IxHash')
              };
 
@@ -140,26 +139,28 @@ sub read {
     }
 
     # Split in such a way as to support grouped styles
-    my $style = $1;
+    my $selector = $1;
     my $props = $2;
 
-    $style =~ s/\s{2,}/ /g;
-    my @styles = grep { s/\s+/ /g; 1; } grep { /\S/ } split /\s*,\s*/, $style;
+    $selector =~ s/\s{2,}/ /g;
 
-    foreach ( @styles ) {
-      $self->_get_css()->{$_} ||= {}
+    if (!defined($self->_get_ordered()->FETCH($selector))) {
+      $self->_get_ordered()->STORE($selector, {});
     }
 
     # Split into properties
+    my $properties = {};
     foreach ( grep { /\S/ } split /\;/, $props ) {
       unless ( /^\s*([\w._-]+)\s*:\s*(.*?)\s*$/ ) {
-        croak "Invalid or unexpected property '$_' in style '$style'";
+        croak "Invalid or unexpected property '$_' in style '$selector'";
       }
 
-      foreach ( @styles ) {
-        $self->_get_css->{$_}->{lc $1} = $2;
-      }
+      #store the property for later
+      $$properties{lc $1} = $2;
     }
+    
+    #store the properties within this selector
+    $self->_get_ordered()->STORE($selector,$properties);
   }
 
   return();
@@ -212,12 +213,12 @@ sub write {
 
   my $contents = '';
 
-  foreach my $style ( $self->_get_ordered()->Keys ) {
+  foreach my $selector ( $self->_get_ordered()->Keys ) {
 
-    #grab the properties that make up this particular style rule
-    my $properties = $self->_get_ordered()->FETCH($style);
+    #grab the properties that make up this particular selector
+    my $properties = $self->_get_ordered()->FETCH($selector);
 
-    $contents .= "$style {\n";
+    $contents .= "$selector {\n";
     foreach my $property ( sort keys %{ $properties } ) {
       $contents .= "\t" . lc($property) . ": ".$properties->{$property}. ";\n";
     }
@@ -227,7 +228,149 @@ sub write {
   return $contents;
 }
 
+####################################################################
+#                                                                  #
+# The following are all get/set methods for manipulating the       #
+# stored stylesheet                                                #
+#                                                                  #
+# Provides a nicer interface than dealing with TIE                 #
+#                                                                  #
+####################################################################
 
+=pod
+
+=item get_styles( params )
+
+Get a hash that represents the various properties for this particular selector
+
+This method requires you to pass in a params hash that contains scalar
+css data. For example:
+
+$self->get_styles({selector => '.foo'});
+
+=cut
+
+sub get_styles {
+  my ($self,$params) = @_;
+
+  $self->_check_object();
+
+  return($self->_get_ordered()->FETCH($$params{selector});
+}
+
+=pod
+
+=item check_selector( params )
+
+Determine if a selector exists within the stored rulesets
+
+This method requires you to pass in a params hash that contains scalar
+css data. For example:
+
+$self->check_selector({selector => '.foo'});
+
+=cut
+
+sub check_selector {
+  my ($self,$params) = @_;
+
+  $self->_check_object();
+
+  return(defined($self->_get_ordered()->FETCH($$params{selector})));
+}
+
+=pod
+
+=item add_properties( params )
+
+Add properties to an existing selector.
+
+In the event that this method is invoked with a selector that doesn't exist then the call
+is just translated to an add_selector call, thus creating the rule at the end of the ruleset.
+
+This method requires you to pass in a params hash that contains scalar
+css data. For example:
+
+$self->add_selector({selector => '.foo', properties => {color => 'red' }});
+
+=cut
+
+sub add_properties {
+  my ($self,$params) = @_;
+
+  $self->_check_object();
+
+  if ($self->check_selector({selector => $$params{selector}) {
+    my $styles = $self->get_selector({selector => $$params{selector}});
+
+    #merge the passed styles into the previously existing styles for this selector
+    my $properties = $$params{properties};
+    foreach my $property (keys %{$properties}) {
+      $$styles{$property} = $$properties{$property};
+    }
+
+    #overwrite the existing properties for this selector with the new hybrid style
+    $self->add_selector({selector => $$params{selector}, properties => $styles});
+  }
+  else {
+    $self->add_selector({selector => $$params{selector}, properties => $$params{properties}});
+  }
+
+  return();
+}
+
+=pod
+
+=item delete_selector( params )
+
+Delete a selector from the ruleset
+
+This method requires you to pass in a params hash that contains scalar
+css data. For example:
+
+$self->delete_selector({selector => '.foo' });
+
+=cut
+
+sub delete_selector {
+  my ($self,$params) = @_;
+
+  $self->_check_object();
+
+  #store the properties, potentially overwriting properties that were there
+  $self->_get_ordered()->DELETE($$params{selector});
+
+  return();
+}
+
+=pod
+
+=item delete_property( params )
+
+Delete a property from a specific selectors rules
+
+This method requires you to pass in a params hash that contains scalar
+css data. For example:
+
+$self->delete_property({selector => '.foo', property => 'color' });
+
+=cut
+
+sub delete_property 
+  my ($self,$params) = @_;
+
+  $self->_check_object();
+
+  #store the properties, potentially overwriting properties that were there
+  my $styles = $self->get_styles({selector => $$params{selector}});
+
+  delete $$styles{$$params{property};
+
+  $self->add_style({selector => $$params{selector}, properties => $styles});
+
+  return();
+}
+  
 ####################################################################
 #                                                                  #
 # The following are all private methods and are not for normal use #
@@ -243,14 +386,6 @@ sub _check_object {
   }
 
   return();
-}
-
-sub _get_css {
-  my ($self,$params) = @_;
-
-  $self->_check_object();
-
-  return($self->{css});
 }
 
 sub _get_ordered {
@@ -288,3 +423,41 @@ This program is free software; you can redistribute it and/or modify it under th
 The full text of the license can be found in the LICENSE file included with this module.
 
 =cut
+
+#=pod
+
+#=item add_selector( params )
+
+#Add a selector and associated properties to the stored rulesets
+
+In the event that this particular ruleset already exists, invoking this method will
+simply replace the item. This is important - if you are modifying an existing rule 
+using this method than the previously existing selectivity will continue to persist.
+Delete the selector first if you want to ignore the previous selectivity.
+
+This method requires you to pass in a params hash that contains scalar
+css data. For example:
+
+#$self->add_selector({selector => '.foo', properties => {color => 'red' }});
+
+=cut
+
+sub add_selector {
+  my ($self,$params) = @_;
+
+  $self->_check_object();
+
+  #if we existed already, invoke REPLACE to preserve selectivity
+  if ($self->check_selector({selector => $$params{selector}}) {
+    my ($index) = $self->_get_ordered()->Indices( $$params{selector} );
+#    $self->_get_ordered()->REPLACE($index,$$params{selector},$$params{properties});
+#  }
+  #new element, stick it onto the end of the rulesets
+#  else {
+#    #store the properties, potentially overwriting properties that were there
+#    $self->_get_ordered()->STORE($$params{selector},$$params{properties});
+  }
+
+  return();
+}
+
