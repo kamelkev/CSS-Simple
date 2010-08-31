@@ -213,9 +213,13 @@ sub write {
   my $contents = '';
 
   foreach my $style ( $self->_get_ordered()->Keys ) {
+
+    #grab the properties that make up this particular style rule
+    my $properties = $self->_get_ordered()->FETCH($style);
+
     $contents .= "$style {\n";
-    foreach ( sort keys %{ $self->{$style} } ) {
-      $contents .= "\t" . lc($_) . ": $self->_get_ordered()->{$style}->{$_};\n";
+    foreach my $property ( sort keys %{ $properties } ) {
+      $contents .= "\t" . lc($property) . ": ".$properties->{$property}. ";\n";
     }
     $contents .= "}\n";
   }
