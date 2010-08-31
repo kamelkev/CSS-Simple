@@ -60,7 +60,8 @@ sub new {
 
   my $self = {
               stylesheet => undef,
-              css => tie(%{$css}, Tie::IxHash)
+              css => $css,
+              ordered => tie(%{$css}, 'Tie::IxHash')
              };
 
   bless $self, $class;
@@ -90,6 +91,8 @@ $self->read_file({filename => 'myfile.css'});
 sub read_file {
   my ($self,$params) = @_;
 
+  $self->_check_object();
+
   unless ($params && $$params{filename}) {
     croak "You must pass in hash params that contain a filename argument";
   }
@@ -118,17 +121,20 @@ $self->read({css => $css});
 sub read {
   my ($self,$params) = @_;
 
+  $self->_check_object();
+
   unless ($params && $$params{css}) {
     croak "You must pass in hash params that contains the css data";
   }
 
   # Flatten whitespace and remove /* comment */ style comments
-  my $string = shift;
+  my $string = $$params{css};
   $string =~ tr/\n\t/  /;
   $string =~ s!/\*.*?\*\/!!g;
 
   # Split into styles
   foreach ( grep { /\S/ } split /(?<=\})/, $string ) {
+
     unless ( /^\s*([^{]+?)\s*\{(.*)\}\s*$/ ) {
       croak "Invalid or unexpected style data '$_'";
     }
@@ -137,9 +143,9 @@ sub read {
     my $style = $1;
     $style =~ s/\s{2,}/ /g;
     my @styles = grep { s/\s+/ /g; 1; } grep { /\S/ } split /\s*,\s*/, $style;
- 
+
     foreach ( @styles ) {
-      $self->{css}->{$_} ||= {}
+      $self->_get_css()->{$_} ||= {}
     }
 
     # Split into properties
@@ -149,7 +155,7 @@ sub read {
       }
 
       foreach ( @styles ) {
-        $self->{css}->{$_}->{lc $1} = $2;
+        $self->_get_css->{$_}->{lc $1} = $2;
       }
     }
   }
@@ -168,8 +174,6 @@ filename argument. For example:
 
 $self->write_file({filename => 'myfile.css'});
 
-=back
-
 =cut
 
 sub write_file {
@@ -182,7 +186,7 @@ sub write_file {
   }
 
   # Write the file
-  open( CSS, '>'. $$params{filename} ) or return $self->_error( "Failed to open file '$file' for writing: $!" );
+  open( CSS, '>'. $$params{filename} ) or croak "Failed to open file '$$params{filename}' for writing: $!";
   print CSS $self->write();
   close( CSS );
 
@@ -206,10 +210,10 @@ sub write {
 
   my $contents = '';
 
-  foreach my $style ( $self->{css}->Keys ) {
+  foreach my $style ( $self->_get_ordered()->Keys ) {
     $contents .= "$style {\n";
     foreach ( sort keys %{ $self->{$style} } ) {
-      $contents .= "\t" . lc($_) . ": $self->{css}->{$style}->{$_};\n";
+      $contents .= "\t" . lc($_) . ": $self->_get_ordered()->{$style}->{$_};\n";
     }
     $contents .= "}\n";
   }
@@ -241,6 +245,14 @@ sub _get_css {
   $self->_check_object();
 
   return($self->{css});
+}
+
+sub _get_ordered {
+  my ($self,$params) = @_;
+
+  $self->_check_object();
+
+  return($self->{ordered});
 }
 
 1;
