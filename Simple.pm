@@ -141,6 +141,8 @@ sub read {
 
     # Split in such a way as to support grouped styles
     my $style = $1;
+    my $props = $2;
+
     $style =~ s/\s{2,}/ /g;
     my @styles = grep { s/\s+/ /g; 1; } grep { /\S/ } split /\s*,\s*/, $style;
 
@@ -149,7 +151,7 @@ sub read {
     }
 
     # Split into properties
-    foreach ( grep { /\S/ } split /\;/, $2 ) {
+    foreach ( grep { /\S/ } split /\;/, $props ) {
       unless ( /^\s*([\w._-]+)\s*:\s*(.*?)\s*$/ ) {
         croak "Invalid or unexpected property '$_' in style '$style'";
       }
