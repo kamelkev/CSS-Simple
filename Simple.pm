@@ -303,7 +303,7 @@ sub add_selector {
   #if we existed already, invoke REPLACE to preserve selectivity
   if ($self->check_selector({selector => $$params{selector}})) {
     my ($index) = $self->_get_ordered()->Indices( $$params{selector} );
-    $self->_get_ordered()->REPLACE($index,$$params{selector},$$params{properties});
+    $self->_get_ordered()->Replace($index,$$params{selector},$$params{properties});
   }
   #new element, stick it onto the end of the rulesets
   else {
@@ -336,16 +336,16 @@ sub add_properties {
   $self->_check_object();
 
   if ($self->check_selector({selector => $$params{selector}})) {
-    my $styles = $self->get_selector({selector => $$params{selector}});
+    my $properties = $self->get_properties({selector => $$params{selector}});
 
     #merge the passed styles into the previously existing styles for this selector
-    my $properties = $$params{properties};
-    foreach my $property (keys %{$properties}) {
-      $$styles{$property} = $$properties{$property};
+    my $new_properties = $$params{properties};
+    foreach my $property (keys %{$new_properties}) {
+      $$properties{$property} = $$new_properties{$property};
     }
 
     #overwrite the existing properties for this selector with the new hybrid style
-    $self->add_selector({selector => $$params{selector}, properties => $styles});
+    $self->add_selector({selector => $$params{selector}, properties => $properties});
   }
   else {
     $self->add_selector({selector => $$params{selector}, properties => $$params{properties}});
