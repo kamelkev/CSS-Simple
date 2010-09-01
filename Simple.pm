@@ -237,18 +237,18 @@ sub write {
 
 =pod
 
-=item get_styles( params )
+=item get_properties( params )
 
 Get a hash that represents the various properties for this particular selector
 
 This method requires you to pass in a params hash that contains scalar
 css data. For example:
 
-$self->get_styles({selector => '.foo'});
+$self->get_properties({selector => '.foo'});
 
 =cut
 
-sub get_styles {
+sub get_properties {
   my ($self,$params) = @_;
 
   $self->_check_object();
@@ -399,11 +399,11 @@ sub delete_property {
   $self->_check_object();
 
   #get the properties so we can remove the requested property from the hash
-  my $styles = $self->get_styles({selector => $$params{selector}});
+  my $properties = $self->get_properties({selector => $$params{selector}});
 
-  delete $$styles{$$params{property}};
+  delete $$properties{$$params{property}};
 
-  $self->add_selector({selector => $$params{selector}, properties => $styles});
+  $self->add_selector({selector => $$params{selector}, properties => $properties});
 
   return();
 }
