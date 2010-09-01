@@ -1,4 +1,4 @@
-# $Id: Inliner.pm 2669 2010-08-19 22:17:42Z kamelkev $
+# $Id$
 #
 # Copyright 2009 MailerMailer, LLC - http://www.mailermailer.com
 #
@@ -11,7 +11,7 @@ use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = sprintf "%d", q$Revision: 2694 $ =~ /(\d+)/;
+$VERSION = sprintf "%d", q$Revision$ =~ /(\d+)/;
 
 use Carp;
 use Tie::IxHash;
