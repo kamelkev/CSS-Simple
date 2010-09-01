@@ -234,6 +234,23 @@ sub write {
 
 =pod
 
+=item get_selectors( params )
+
+Get an array of selectors that represents an inclusive list of all selectors
+stored.
+
+=cut
+
+sub get_selectors {
+  my ($self,$params) = @_;
+
+  $self->_check_object();
+
+  return($self->_get_ordered()->Keys());
+}
+
+=pod
+
 =item get_properties( params )
 
 Get a hash that represents the various properties for this particular selector
