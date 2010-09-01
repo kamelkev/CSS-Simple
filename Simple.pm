@@ -255,7 +255,7 @@ sub get_styles {
 
   $self->_check_object();
 
-  return($self->_get_ordered()->FETCH($$params{selector});
+  return($self->_get_ordered()->FETCH($$params{selector}));
 }
 
 =pod
@@ -276,7 +276,44 @@ sub check_selector {
 
   $self->_check_object();
 
-  return(defined($self->_get_ordered()->FETCH($$params{selector})));
+  return($self->_get_ordered()->EXISTS($$params{selector}));
+}
+
+=pod
+
+=item add_selector( params )
+
+Add a selector and associated properties to the stored rulesets
+
+In the event that this particular ruleset already exists, invoking this method will
+simply replace the item. This is important - if you are modifying an existing rule 
+using this method than the previously existing selectivity will continue to persist.
+Delete the selector first if you want to ignore the previous selectivity.
+
+This method requires you to pass in a params hash that contains scalar
+css data. For example:
+
+#$self->add_selector({selector => '.foo', properties => {color => 'red' }});
+
+=cut
+
+sub add_selector {
+  my ($self,$params) = @_;
+
+  $self->_check_object();
+
+  #if we existed already, invoke REPLACE to preserve selectivity
+  if ($self->check_selector({selector => $$params{selector}})) {
+    my ($index) = $self->_get_ordered()->Indices( $$params{selector} );
+    $self->_get_ordered()->REPLACE($index,$$params{selector},$$params{properties});
+  }
+  #new element, stick it onto the end of the rulesets
+  else {
+    #store the properties, potentially overwriting properties that were there
+    $self->_get_ordered()->STORE($$params{selector},$$params{properties});
+  }
+
+  return();
 }
 
 =pod
@@ -300,7 +337,7 @@ sub add_properties {
 
   $self->_check_object();
 
-  if ($self->check_selector({selector => $$params{selector}) {
+  if ($self->check_selector({selector => $$params{selector}})) {
     my $styles = $self->get_selector({selector => $$params{selector}});
 
     #merge the passed styles into the previously existing styles for this selector
@@ -356,17 +393,17 @@ $self->delete_property({selector => '.foo', property => 'color' });
 
 =cut
 
-sub delete_property 
+sub delete_property {
   my ($self,$params) = @_;
 
   $self->_check_object();
 
-  #store the properties, potentially overwriting properties that were there
+  #get the properties so we can remove the requested property from the hash
   my $styles = $self->get_styles({selector => $$params{selector}});
 
-  delete $$styles{$$params{property};
+  delete $$styles{$$params{property}};
 
-  $self->add_style({selector => $$params{selector}, properties => $styles});
+  $self->add_selector({selector => $$params{selector}, properties => $styles});
 
   return();
 }
@@ -423,41 +460,4 @@ This program is free software; you can redistribute it and/or modify it under th
 The full text of the license can be found in the LICENSE file included with this module.
 
 =cut
-
-#=pod
-
-#=item add_selector( params )
-
-#Add a selector and associated properties to the stored rulesets
-
-In the event that this particular ruleset already exists, invoking this method will
-simply replace the item. This is important - if you are modifying an existing rule 
-using this method than the previously existing selectivity will continue to persist.
-Delete the selector first if you want to ignore the previous selectivity.
-
-This method requires you to pass in a params hash that contains scalar
-css data. For example:
-
-#$self->add_selector({selector => '.foo', properties => {color => 'red' }});
-
-=cut
-
-sub add_selector {
-  my ($self,$params) = @_;
-
-  $self->_check_object();
-
-  #if we existed already, invoke REPLACE to preserve selectivity
-  if ($self->check_selector({selector => $$params{selector}}) {
-    my ($index) = $self->_get_ordered()->Indices( $$params{selector} );
-#    $self->_get_ordered()->REPLACE($index,$$params{selector},$$params{properties});
-#  }
-  #new element, stick it onto the end of the rulesets
-#  else {
-#    #store the properties, potentially overwriting properties that were there
-#    $self->_get_ordered()->STORE($$params{selector},$$params{properties});
-  }
-
-  return();
-}
 
