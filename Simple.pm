@@ -11,10 +11,11 @@ use strict;
 use warnings;
 
 use vars qw($VERSION);
-$VERSION = sprintf "%d", q$Revision: 2669 $ =~ /(\d+)/;
+$VERSION = sprintf "%d", q$Revision$ =~ /(\d+)/;
 
 use Carp;
 use Tie::IxHash;
+use Storable qw(dclone);
 
 =pod
 
@@ -302,13 +303,15 @@ sub add_selector {
 
   #if we existed already, invoke REPLACE to preserve selectivity
   if ($self->check_selector({selector => $$params{selector}})) {
+    #we probably want to be doing this explicitely
     my ($index) = $self->_get_ordered()->Indices( $$params{selector} );
-    $self->_get_ordered()->Replace($index,$$params{selector},$$params{properties});
+
+    $self->_get_ordered()->Replace($index,dclone($$params{properties}));
   }
   #new element, stick it onto the end of the rulesets
   else {
-    #store the properties, potentially overwriting properties that were there
-    $self->_get_ordered()->STORE($$params{selector},$$params{properties});
+    #store the properties
+    $self->_get_ordered()->STORE($$params{selector},dclone($$params{properties}));
   }
 
   return();
@@ -318,7 +321,7 @@ sub add_selector {
 
 =item add_properties( params )
 
-Add properties to an existing selector.
+Add properties to an existing selector, preserving the selectivity of the original declaration.
 
 In the event that this method is invoked with a selector that doesn't exist then the call
 is just translated to an add_selector call, thus creating the rule at the end of the ruleset.
@@ -335,17 +338,13 @@ sub add_properties {
 
   $self->_check_object();
 
+  #If selector exists already, merge properties into this selector
   if ($self->check_selector({selector => $$params{selector}})) {
-    my $properties = $self->get_properties({selector => $$params{selector}});
-
-    #merge the passed styles into the previously existing styles for this selector
-    my $new_properties = $$params{properties};
-    foreach my $property (keys %{$new_properties}) {
-      $$properties{$property} = $$new_properties{$property};
-    }
+    #merge property sets together
+    my %properties = (%{$self->get_properties({selector => $$params{selector}})}, %{$$params{properties}});
 
     #overwrite the existing properties for this selector with the new hybrid style
-    $self->add_selector({selector => $$params{selector}, properties => $properties});
+    $self->add_selector({selector => $$params{selector}, properties => \%properties});
   }
   else {
     $self->add_selector({selector => $$params{selector}, properties => $$params{properties}});
