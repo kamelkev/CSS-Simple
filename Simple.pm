@@ -381,7 +381,7 @@ is just translated to an add_selector call, thus creating the rule at the end of
 This method requires you to pass in a params hash that contains scalar
 css data. For example:
 
-$self->add_selector({selector => '.foo', properties => {color => 'red' }});
+$self->add_properties({selector => '.foo', properties => {color => 'red' }});
 
 =cut
 
