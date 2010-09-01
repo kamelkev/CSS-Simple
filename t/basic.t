@@ -65,14 +65,6 @@ my $simple = CSS::Simple->new();
 
 $simple->read({css => $css});
 
-#shuffle stored styles around
-my $shuffle1 = 0;
-foreach (keys %{$simple->_get_css()}) { $shuffle1++;}
-
-#shuffle stored styles around more
-my $shuffle2 = 0;
-while ( each %{$simple->_get_css()} ) {$shuffle2++;}
-
 my $ordered = $simple->write();
 
 # check to make sure that our shuffled hashes matched up...
