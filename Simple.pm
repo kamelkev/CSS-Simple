@@ -145,10 +145,6 @@ sub read {
 
     $selector =~ s/\s{2,}/ /g;
 
-    if (!defined($self->_get_ordered()->FETCH($selector))) {
-      $self->_get_ordered()->STORE($selector, {});
-    }
-
     # Split into properties
     my $properties = {};
     foreach ( grep { /\S/ } split /\;/, $props ) {
@@ -161,7 +157,7 @@ sub read {
     }
     
     #store the properties within this selector
-    $self->_get_ordered()->STORE($selector,$properties);
+    $self->add_selector({selector => $selector, properties => $properties});
   }
 
   return();
@@ -215,7 +211,7 @@ sub write {
   foreach my $selector ( $self->_get_ordered()->Keys ) {
 
     #grab the properties that make up this particular selector
-    my $properties = $self->_get_ordered()->FETCH($selector);
+    my $properties = $self->get_properties({selector => $selector});
 
     $contents .= "$selector {\n";
     foreach my $property ( sort keys %{ $properties } ) {
@@ -346,6 +342,7 @@ sub add_properties {
     #overwrite the existing properties for this selector with the new hybrid style
     $self->add_selector({selector => $$params{selector}, properties => \%properties});
   }
+  #otherwise add it wholesale
   else {
     $self->add_selector({selector => $$params{selector}, properties => $$params{properties}});
   }
