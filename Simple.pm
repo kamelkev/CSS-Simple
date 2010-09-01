@@ -202,8 +202,6 @@ sub write_file {
 
 Write the parsed and manipulated CSS out to a scalar and return it
 
-=back
-
 =cut
 
 sub write {
@@ -293,7 +291,7 @@ Delete the selector first if you want to ignore the previous selectivity.
 This method requires you to pass in a params hash that contains scalar
 css data. For example:
 
-#$self->add_selector({selector => '.foo', properties => {color => 'red' }});
+$self->add_selector({selector => '.foo', properties => {color => 'red' }});
 
 =cut
 
@@ -390,6 +388,8 @@ This method requires you to pass in a params hash that contains scalar
 css data. For example:
 
 $self->delete_property({selector => '.foo', property => 'color' });
+
+=back
 
 =cut
 
