@@ -293,6 +293,45 @@ sub check_selector {
 
 =pod
 
+=item modify_selector( params )
+
+Modify an existing selector
+ 
+Modifying a selector maintains the existing selectivity of the rule with relation to the 
+original stylesheet. If you want to ignore that selectivity, delete the element and re-add
+it to CSS::Simple
+
+This method requires you to pass in a params hash that contains scalar
+css data. For example:
+
+$self->modify_selector({selector => '.foo', new_selector => '.bar' });
+
+=cut
+
+sub modify_selector {
+  my ($self,$params) = @_;
+
+  $self->_check_object();
+
+  #if the selector is found, replace the selector
+  if ($self->check_selector({selector => $$params{selector}})) {
+    #we probably want to be doing this explicitely
+    my ($index) = $self->_get_ordered()->Indices( $$params{selector} );
+    my $properties = $self->get_properties({selector => $$params{selector}});
+
+    $self->_get_ordered()->Replace($index,$properties,$$params{new_selector});
+  }
+  #otherwise new element, stick it onto the end of the rulesets
+  else {
+    #add a selector, there was nothing to replace
+    $self->add_selector({selector => $$params{new_selector}, properties => {}});
+  }
+
+  return();
+}
+
+=pod
+
 =item add_selector( params )
 
 Add a selector and associated properties to the stored rulesets
