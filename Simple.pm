@@ -155,9 +155,19 @@ sub read {
       #store the property for later
       $$properties{lc $1} = $2;
     }
-    
-    #store the properties within this selector
-    $self->add_selector({selector => $selector, properties => $properties});
+        
+    if ($self->check_selector({selector => $selector})) { #check if we already exist
+      my $old_properties = $self->get_properties({selector => $selector});
+      $self->delete_selector({selector => $selector});
+
+      my %merged = (%$properties, %$old_properties);
+
+      $self->add_selector({selector => $selector, properties => \%merged});
+    }
+    else {
+      #store the properties within this selector
+      $self->add_selector({selector => $selector, properties => $properties});
+    }
   }
 
   return();
