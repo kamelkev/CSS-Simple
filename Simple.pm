@@ -148,7 +148,7 @@ sub read {
     # Split into properties
     my $properties = {};
     foreach ( grep { /\S/ } split /\;/, $props ) {
-      unless ( /^\s*([\w._-*\\]+)\s*:\s*(.*?)\s*$/ ) {
+      unless ( /^\s*([\w._\-\*\\]+)\s*:\s*(.*?)\s*$/ ) {
         croak "Invalid or unexpected property '$_' in style '$selector'";
       }
 
