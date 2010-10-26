@@ -5,6 +5,6 @@
 2895	2010-10-25	Kevin Kamel <kamelkev@mailermailer.com>
 
 	* Widen acceptable selectors, there were hacks that used certain characters we weren't allowing
-	* Update documentation
+	* In the event a selector is given twice, merge back the properties instead of overwriting them
 	* Add forgotten method for "get all selectors"
 	* Update documentation

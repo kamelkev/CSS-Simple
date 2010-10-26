@@ -56,9 +56,10 @@ my $css = <<END;
 	font-weight: bold;
 }
 .biz5 {
-	color: green;
+	color: blue;
 }
 .biz5 {
+	color: green;
 	font-size: 10px;
 }
 END

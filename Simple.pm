@@ -160,7 +160,7 @@ sub read {
       my $old_properties = $self->get_properties({selector => $selector});
       $self->delete_selector({selector => $selector});
 
-      my %merged = (%$properties, %$old_properties);
+      my %merged = (%$old_properties, %$properties);
 
       $self->add_selector({selector => $selector, properties => \%merged});
     }
