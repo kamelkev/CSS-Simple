@@ -2,7 +2,7 @@
 
 	* Initial release to world.
 
-2895	2010-10-25	Kevin Kamel <kamelkev@mailermailer.com>
+2870	2010-10-27	Kevin Kamel <kamelkev@mailermailer.com>
 
 	* Widen acceptable selectors, there were hacks that used certain characters we weren't allowing
 	* In the event a selector is given twice, merge back the properties instead of overwriting them
