@@ -159,7 +159,7 @@ sub read {
     # Split into properties
     my $properties = {};
     foreach ( grep { /\S/ } split /\;/, $props ) {
-      if ((/^\s[\*\-\_]/) || (/\\/)) {
+      if ((/^\s*[\*\-\_]/) || (/\\/)) {
         next; # skip over browser specific properties
       }
 
@@ -244,11 +244,13 @@ sub write {
     #grab the properties that make up this particular selector
     my $properties = $self->get_properties({selector => $selector});
 
-    $contents .= "$selector {\n";
-    foreach my $property ( sort keys %{ $properties } ) {
-      $contents .= "\t" . lc($property) . ": ".$properties->{$property}. ";\n";
+    if (keys(%{$properties})) { # only output if the selector has properties
+      $contents .= "$selector {\n";
+      foreach my $property ( sort keys %{ $properties } ) {
+        $contents .= "\t" . lc($property) . ": ".$properties->{$property}. ";\n";
+      }
+      $contents .= "}\n";
     }
-    $contents .= "}\n";
   }
 
   return $contents;
