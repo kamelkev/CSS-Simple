@@ -2,7 +2,7 @@
 
 	* Initial release to world.
 
-2875	2010-10-27	Kevin Kamel <kamelkev@mailermailer.com>
+2874	2010-10-27	Kevin Kamel <kamelkev@mailermailer.com>
 
 	* Widen "acceptable" selectors, there were hacks that used certain characters we weren't allowing,
 	  we now skip such selectors and don't store them at all          
