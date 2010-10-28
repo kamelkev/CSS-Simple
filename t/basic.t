@@ -122,10 +122,12 @@ my $correct = <<END;
 .bar5 {
 	color: blue;
 	font-weight: bold;
+	line-height: 20px;
 }
 .biz5 {
 	color: green;
 	font-size: 10px;
+	line-height: 20px;
 }
 END
 
@@ -134,8 +136,6 @@ my $simple = CSS::Simple->new();
 $simple->read({css => $css});
 
 my $ordered = $simple->write();
-
-warn $ordered;
 
 # check to make sure that our shuffled hashes matched up...
 ok($correct eq $ordered);
