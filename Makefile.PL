@@ -2,14 +2,15 @@
 use ExtUtils::MakeMaker;
 WriteMakefile(
     NAME => 'CSS::Simple',
+    PMLIBDIRS => [ 'lib' ],
     PREREQ_PM => {
 	'Carp' => 0,
         'Tie::IxHash' => 0
     },
     dist => {
-	PREOP => 'pod2text Simple.pm > README',
+	PREOP => 'pod2text lib/CSS/Simple.pm > README',
     },
-    VERSION_FROM => 'Simple.pm',
+    VERSION_FROM => 'lib/CSS/Simple.pm',
     AUTHOR => 'Kevin Kamel <kamelkev@mailermailer.com>',
     ABSTRACT => 'Interface through which to read/write/manipulate CSS files while respecting the cascade order',
     LICENSE => 'perl',
