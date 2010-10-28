@@ -23,6 +23,12 @@ my $css = <<END;
 }
 END
 
+my $correct = <<END;
+.foo2 {
+	width: 130px;
+}
+END
+
 my $simple = CSS::Simple->new();
 
 $simple->read({css => $css});
@@ -30,4 +36,4 @@ $simple->read({css => $css});
 my $ordered = $simple->write();
 
 # check to make sure that our shuffled hashes matched up...
-ok($css eq $ordered);
+ok($correct eq $ordered);
