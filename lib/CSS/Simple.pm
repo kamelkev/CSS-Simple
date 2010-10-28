@@ -140,35 +140,39 @@ sub read {
     }
 
     # Split in such a way as to support grouped styles
-    my $selector = $1;
+    my $rule = $1;
     my $props = $2;
 
-    $selector =~ s/\s{2,}/ /g;
-
-    warn $selector;
+    $rule =~ s/\s{2,}/ /g;
 
     # Split into properties
     my $properties = {};
     foreach ( grep { /\S/ } split /\;/, $props ) {
       unless ( /^\s*([\w._\-\*\\]+)\s*:\s*(.*?)\s*$/ ) {
-        croak "Invalid or unexpected property '$_' in style '$selector'";
+        croak "Invalid or unexpected property '$_' in style '$rule'";
       }
 
       #store the property for later
       $$properties{lc $1} = $2;
     }
-        
-    if ($self->check_selector({selector => $selector})) { #check if we already exist
-      my $old_properties = $self->get_properties({selector => $selector});
-      $self->delete_selector({selector => $selector});
 
-      my %merged = (%$old_properties, %$properties);
+    my @selectors = split /,/, $rule; # break the rule into the component selector(s)
 
-      $self->add_selector({selector => $selector, properties => \%merged});
-    }
-    else {
-      #store the properties within this selector
-      $self->add_selector({selector => $selector, properties => $properties});
+    #apply the found rules to each selector
+    foreach my $selector (@selectors) {
+      $selector =~ s/^\s+|\s+$//g;
+      if ($self->check_selector({selector => $selector})) { #check if we already exist
+        my $old_properties = $self->get_properties({selector => $selector});
+        $self->delete_selector({selector => $selector});
+
+        my %merged = (%$old_properties, %$properties);
+
+        $self->add_selector({selector => $selector, properties => \%merged});
+      }
+      else {
+        #store the properties within this selector
+        $self->add_selector({selector => $selector, properties => $properties});
+      }
     }
   }
 
