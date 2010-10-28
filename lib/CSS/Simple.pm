@@ -159,7 +159,11 @@ sub read {
     # Split into properties
     my $properties = {};
     foreach ( grep { /\S/ } split /\;/, $props ) {
-      unless ( /^\s*([\w._\-\*\\]+)\s*:\s*(.*?)\s*$/ ) {
+      if ((/^\s[\*\-\_]/) || (/\\/)) {
+        next; # skip over browser specific properties
+      }
+
+      unless ( /^\s*([\w._-]+)\s*:\s*(.*?)\s*$/ ) {
         croak "Invalid or unexpected property '$_' in style '$rule'";
       }
 
