@@ -20,8 +20,6 @@ $simple->modify_selector({selector => '.foo3', new_selector => '.last'});
 my $ordered = $simple->write();
 
 my $expected = <<END;
-.empty {
-}
 .bar {
 	color: blue;
 	font-size: 16px;

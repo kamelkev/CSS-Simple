@@ -30,8 +30,6 @@ $simple->delete_property({selector => '.foo3', property => 'font-family'});
 my $ordered = $simple->write();
 
 my $expected = <<END;
-.empty {
-}
 .bar {
 	color: blue;
 	font-size: 16px;
