@@ -1,3 +1,7 @@
+use strict;
+use warnings;
+use lib qw( ./lib ../lib );
+
 use Test::More;
 plan(tests => 2);
 
@@ -61,6 +65,9 @@ my $css = <<END;
 .biz5 {
 	color: green;
 	font-size: 10px;
+}
+.bar5, .biz5 {
+	line-height: 20px;
 }
 END
 
@@ -127,6 +134,8 @@ my $simple = CSS::Simple->new();
 $simple->read({css => $css});
 
 my $ordered = $simple->write();
+
+warn $ordered;
 
 # check to make sure that our shuffled hashes matched up...
 ok($correct eq $ordered);
