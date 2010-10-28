@@ -41,6 +41,10 @@ Class for reading, manipulating and writing CSS. Unlike other CSS classes on CPA
 focuses on respecting the order of selectors while providing a common sense API through which to manipulate the
 rules.
 
+Please note that while ordering is respected, the exact order of selectors may change. I.e. the rules
+implied by the styles and their ordering will not change, but the actual ordering of the styles may shift around.
+See the read method for more information.
+
 =head1 CONSTRUCTOR
 
 =over 4
@@ -110,6 +114,13 @@ sub read_file {
 =item read( params )
 
 Reads css data and parses it. The intermediate data is stored in class variables.
+
+Compound selectors (i.e. "a, span") are split apart during parsing and stored
+separately, so the output of any given stylesheet may not match the output 100%, but the 
+rules themselves should apply as expected.
+
+Ordering of selectors may shift if the same selector is seen twice within the stylesheet.
+The precendence for any given selector is the last time it was seen by the parser.
 
 This method requires you to pass in a params hash that contains scalar
 css data. For example:
