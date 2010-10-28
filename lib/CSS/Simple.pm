@@ -38,8 +38,8 @@ CSS::Simple - Interface through which to read/write/manipulate CSS files while r
 =head1 DESCRIPTION
 
 Class for reading, manipulating and writing CSS. Unlike other CSS classes on CPAN this particular module
-focuses on respecting the cascade order while providing a common sense API through which to manipulate the
-parsed rules.
+focuses on respecting the order of selectors while providing a common sense API through which to manipulate the
+rules.
 
 =head1 CONSTRUCTOR
 
@@ -144,6 +144,8 @@ sub read {
     my $props = $2;
 
     $selector =~ s/\s{2,}/ /g;
+
+    warn $selector;
 
     # Split into properties
     my $properties = {};
