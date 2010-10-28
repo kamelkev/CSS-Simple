@@ -2,13 +2,14 @@
 
 	* Initial release to world.
 
-2871	2010-10-27	Kevin Kamel <kamelkev@mailermailer.com>
+2875	2010-10-27	Kevin Kamel <kamelkev@mailermailer.com>
 
 	* Widen "acceptable" selectors, there were hacks that used certain characters we weren't allowing,
 	  we now skip such selectors and don't store them at all          
 	* In the event a selector is given twice, merge back the properties instead of overwriting them
 	* In the event a compound rule was given we break it into the component selectors
 	* Add forgotten method for "get all selectors"
+	* Empty selectors are no longer outputted during write operations
 	* Updated module, created more sophisticated directory structured
 	* Updated tests
 	* Update documentation
