@@ -13,7 +13,6 @@ use warnings;
 use vars qw($VERSION);
 $VERSION = sprintf "%d", q$Revision$ =~ /(\d+)/;
 
-use Carp;
 use Tie::IxHash;
 use Storable qw(dclone);
 
@@ -53,6 +52,8 @@ See the read method for more information.
 
 Instantiates the CSS::Simple object. Sets up class variables that are used during file parsing/processing.
 
+B<suppress_errors> (optional). Boolean value to indicate whether fatal errors should occur during parse failures.
+
 =back
 =cut
 
@@ -65,7 +66,8 @@ sub new {
 
   my $self = {
               stylesheet => undef,
-              ordered => tie(%{$css}, 'Tie::IxHash')
+              ordered => tie(%{$css}, 'Tie::IxHash'),
+              suppress_errors => (defined($$params{suppress_errors}) && $$params{suppress_errors}) ? 1 : 0
              };
 
   bless $self, $class;
@@ -98,7 +100,7 @@ sub read_file {
   $self->_check_object();
 
   unless ($params && $$params{filename}) {
-    croak "You must pass in hash params that contain a filename argument";
+    die "You must pass in hash params that contain a filename argument";
   }
 
   open FILE, "<", $$params{filename} or die $!;
@@ -134,61 +136,67 @@ sub read {
 
   $self->_check_object();
 
-  unless ($params && $$params{css}) {
-    croak "You must pass in hash params that contains the css data";
+  if ($params && $$params{css}) {
+    # Flatten whitespace and remove /* comment */ style comments
+    my $string = $$params{css};
+    $string =~ tr/\n\t/  /;
+    $string =~ s!/\*.*?\*\/!!g;
+
+    # Split into styles
+    foreach ( grep { /\S/ } split /(?<=\})/, $string ) {
+
+      unless ( /^\s*([^{]+?)\s*\{(.*)\}\s*$/ ) {
+        $self->_report_error({ info => "Invalid or unexpected style data '$_'" });
+        next;
+      }
+
+      # Split in such a way as to support grouped styles
+      my $rule = $1;
+      my $props = $2;
+
+      $rule =~ s/\s{2,}/ /g;
+
+      # Split into properties
+      my $properties = {};
+      foreach ( grep { /\S/ } split /\;/, $props ) {
+
+        # skip over browser specific properties
+        if ((/^\s*[\*\-\_]/) || (/\\/)) {
+          next; 
+        }
+
+        # check if properties are valid, reporting error as configured        
+        unless ( /^\s*([\w._-]+)\s*:\s*(.*?)\s*$/ ) {
+          $self->_report_error({ info => "Invalid or unexpected property '$_' in style '$rule'" });
+          next;
+        }
+
+        #store the property for later
+        $$properties{lc $1} = $2;
+      }
+
+      my @selectors = split /,/, $rule; # break the rule into the component selector(s)
+
+      #apply the found rules to each selector
+      foreach my $selector (@selectors) {
+        $selector =~ s/^\s+|\s+$//g;
+        if ($self->check_selector({selector => $selector})) { #check if we already exist
+          my $old_properties = $self->get_properties({selector => $selector});
+          $self->delete_selector({selector => $selector});
+
+          my %merged = (%$old_properties, %$properties);
+
+          $self->add_selector({selector => $selector, properties => \%merged});
+        }
+        else {
+          #store the properties within this selector
+          $self->add_selector({selector => $selector, properties => $properties});
+        }
+      }
+    }
   }
-
-  # Flatten whitespace and remove /* comment */ style comments
-  my $string = $$params{css};
-  $string =~ tr/\n\t/  /;
-  $string =~ s!/\*.*?\*\/!!g;
-
-  # Split into styles
-  foreach ( grep { /\S/ } split /(?<=\})/, $string ) {
-
-    unless ( /^\s*([^{]+?)\s*\{(.*)\}\s*$/ ) {
-      croak "Invalid or unexpected style data '$_'";
-    }
-
-    # Split in such a way as to support grouped styles
-    my $rule = $1;
-    my $props = $2;
-
-    $rule =~ s/\s{2,}/ /g;
-
-    # Split into properties
-    my $properties = {};
-    foreach ( grep { /\S/ } split /\;/, $props ) {
-      if ((/^\s*[\*\-\_]/) || (/\\/)) {
-        next; # skip over browser specific properties
-      }
-
-      unless ( /^\s*([\w._-]+)\s*:\s*(.*?)\s*$/ ) {
-        croak "Invalid or unexpected property '$_' in style '$rule'";
-      }
-
-      #store the property for later
-      $$properties{lc $1} = $2;
-    }
-
-    my @selectors = split /,/, $rule; # break the rule into the component selector(s)
-
-    #apply the found rules to each selector
-    foreach my $selector (@selectors) {
-      $selector =~ s/^\s+|\s+$//g;
-      if ($self->check_selector({selector => $selector})) { #check if we already exist
-        my $old_properties = $self->get_properties({selector => $selector});
-        $self->delete_selector({selector => $selector});
-
-        my %merged = (%$old_properties, %$properties);
-
-        $self->add_selector({selector => $selector, properties => \%merged});
-      }
-      else {
-        #store the properties within this selector
-        $self->add_selector({selector => $selector, properties => $properties});
-      }
-    }
+  else {
+    $self->_report_error({ info => 'You must pass in hash params that contains the css data'});
   }
 
   return();
@@ -213,11 +221,11 @@ sub write_file {
   $self->_check_object();
 
   unless (exists $$params{filename}) {
-    croak "No filename specified for write operation";
+    die "No filename specified for write operation";
   }
 
   # Write the file
-  open( CSS, '>'. $$params{filename} ) or croak "Failed to open file '$$params{filename}' for writing: $!";
+  open( CSS, '>'. $$params{filename} ) or die "Failed to open file '$$params{filename}' for writing: $!";
   print CSS $self->write();
   close( CSS );
 
@@ -504,7 +512,7 @@ sub _check_object {
   my ($self,$params) = @_;
 
   unless ($self && ref $self) {
-    croak "You must instantiate this class in order to properly use it";
+    die "You must instantiate this class in order to properly use it";
   }
 
   return();
@@ -516,6 +524,21 @@ sub _get_ordered {
   $self->_check_object();
 
   return($self->{ordered});
+}
+
+sub _report_error {
+  my ($self,$params) = @_;
+
+  $self->_check_object();
+
+  if ($self->{suppress_errors}) {
+    warn $$params{info};
+  }
+  else {
+    die $$params{info};
+  }
+
+  return();
 }
 
 1;
