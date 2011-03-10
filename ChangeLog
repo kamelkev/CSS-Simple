@@ -14,7 +14,7 @@
 	* Updated tests
 	* Update documentation
 
-3024	2011-03-09	Kevin Kamel <kamelkev@mailermailer.com>
+3044	2011-03-10	Kevin Kamel <kamelkev@mailermailer.com>
 
 	* Add new flag to constructor (suppress_error) to disable fatal errors, instead allowing warns
 	* Replace croaks with dies
