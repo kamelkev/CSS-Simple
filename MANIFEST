@@ -5,5 +5,6 @@ Makefile.PL
 README
 t/basic.t
 t/create.t
+t/fail.t
 t/hacks.t
 t/modify.t
