@@ -13,3 +13,9 @@
 	* Updated module, created more sophisticated directory structured
 	* Updated tests
 	* Update documentation
+
+3024	2011-03-09	Kevin Kamel <kamelkev@mailermailer.com>
+
+	* Add new flag to constructor (suppress_error) to disable fatal errors, instead allowing warns
+	* Replace croaks with dies
+	* Add test to make sure suppress_error flag works
