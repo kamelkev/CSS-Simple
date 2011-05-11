@@ -162,7 +162,7 @@ sub read {
 
   $self->_check_object();
 
-  $self->_content_warnings([]); # overwrite any existing warnings
+  $self->_content_warnings({}); # overwrite any existing warnings
 
   unless (exists $$params{css}) {
     croak 'You must pass in hash params that contains the css data';
@@ -314,7 +314,9 @@ sub content_warnings {
 
   $self->_check_object();
 
-  return $self->_content_warnings();
+  my @content_warnings = keys %{$self->_content_warnings()};
+
+  return \@content_warnings;
 }
 
 ####################################################################
@@ -581,8 +583,7 @@ sub _report_warning {
   }
   else {
     my $warnings = $self->_content_warnings();
-    push @{$warnings}, $$params{info};
-    $self->_content_warnings($warnings);
+    $$warnings{$$params{info}} = 1;
   }
 
   return();

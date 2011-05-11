@@ -37,7 +37,7 @@ eval {
   $suppressed->read({css => $css});
 };
 
-@warnings = @{$suppressed->_content_warnings()};
+@warnings = @{$suppressed->content_warnings()};
 
 ok(scalar @warnings == 1);
 ok($warnings[0] =~ /^Invalid or unexpected property/);
