@@ -31,11 +31,13 @@ ok($@ =~ /^Invalid or unexpected property/);
 @warnings = (); # clear all preceding warnings and start over
 
 #test to ensure that when fatals are disabled that we only get warnings
-my $supressed = CSS::Simple->new({ suppress_errors => 1 });
+my $suppressed = CSS::Simple->new({ suppress_errors => 1 });
 
 eval {
-  $supressed->read({css => $css});
+  $suppressed->read({css => $css});
 };
+
+@warnings = @{$suppressed->_content_warnings()};
 
 ok(scalar @warnings == 1);
 ok($warnings[0] =~ /^Invalid or unexpected property/);

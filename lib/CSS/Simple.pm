@@ -13,6 +13,8 @@ use warnings;
 use vars qw($VERSION);
 $VERSION = sprintf "%d", q$Revision$ =~ /(\d+)/;
 
+use Carp;
+
 use Tie::IxHash;
 use Storable qw(dclone);
 
@@ -44,6 +46,29 @@ Please note that while ordering is respected, the exact order of selectors may c
 implied by the styles and their ordering will not change, but the actual ordering of the styles may shift around.
 See the read method for more information.
 
+=cut
+
+BEGIN {
+  my $members = ['ordered','stylesheet','suppress_errors','content_warnings'];
+
+  #generate all the getter/setter we need
+  foreach my $member (@{$members}) {
+    no strict 'refs';                                                                                
+
+    *{'_' . $member} = sub {
+      my ($self,$value) = @_;
+
+      $self->_check_object();
+
+      $self->{$member} = $value if defined($value);
+
+      return $self->{$member};
+    }
+  }
+}
+
+
+=pod 
 =head1 CONSTRUCTOR
 
 =over 4
@@ -67,6 +92,7 @@ sub new {
   my $self = {
               stylesheet => undef,
               ordered => tie(%{$css}, 'Tie::IxHash'),
+              content_warnings => undef,
               suppress_errors => (defined($$params{suppress_errors}) && $$params{suppress_errors}) ? 1 : 0
              };
 
@@ -100,10 +126,10 @@ sub read_file {
   $self->_check_object();
 
   unless ($params && $$params{filename}) {
-    die "You must pass in hash params that contain a filename argument";
+    croak "You must pass in hash params that contain a filename argument";
   }
 
-  open FILE, "<", $$params{filename} or die $!;
+  open FILE, "<", $$params{filename} or croak $!;
   my $css = do { local( $/ ) ; <FILE> } ;
 
   $self->read({css => $css});
@@ -136,6 +162,12 @@ sub read {
 
   $self->_check_object();
 
+  $self->_content_warnings([]); # overwrite any existing warnings
+
+  unless (exists $$params{css}) {
+    croak 'You must pass in hash params that contains the css data';
+  }
+
   if ($params && $$params{css}) {
     # Flatten whitespace and remove /* comment */ style comments
     my $string = $$params{css};
@@ -146,7 +178,7 @@ sub read {
     foreach ( grep { /\S/ } split /(?<=\})/, $string ) {
 
       unless ( /^\s*([^{]+?)\s*\{(.*)\}\s*$/ ) {
-        $self->_report_error({ info => "Invalid or unexpected style data '$_'" });
+        $self->_report_warning({ info => "Invalid or unexpected style data '$_'" });
         next;
       }
 
@@ -167,7 +199,7 @@ sub read {
 
         # check if properties are valid, reporting error as configured        
         unless ( /^\s*([\w._-]+)\s*:\s*(.*?)\s*$/ ) {
-          $self->_report_error({ info => "Invalid or unexpected property '$_' in style '$rule'" });
+          $self->_report_warning({ info => "Invalid or unexpected property '$_' in style '$rule'" });
           next;
         }
 
@@ -196,7 +228,7 @@ sub read {
     }
   }
   else {
-    $self->_report_error({ info => 'You must pass in hash params that contains the css data'});
+    $self->_report_warning({ info => 'No stylesheet data was found in the document'});
   }
 
   return();
@@ -221,11 +253,11 @@ sub write_file {
   $self->_check_object();
 
   unless (exists $$params{filename}) {
-    die "No filename specified for write operation";
+    croak "No filename specified for write operation";
   }
 
   # Write the file
-  open( CSS, '>'. $$params{filename} ) or die "Failed to open file '$$params{filename}' for writing: $!";
+  open( CSS, '>'. $$params{filename} ) or croak "Failed to open file '$$params{filename}' for writing: $!";
   print CSS $self->write();
   close( CSS );
 
@@ -247,7 +279,7 @@ sub write {
 
   my $contents = '';
 
-  foreach my $selector ( $self->_get_ordered()->Keys ) {
+  foreach my $selector ( $self->_ordered()->Keys ) {
 
     #grab the properties that make up this particular selector
     my $properties = $self->get_properties({selector => $selector});
@@ -287,7 +319,7 @@ sub get_selectors {
 
   $self->_check_object();
 
-  return($self->_get_ordered()->Keys());
+  return($self->_ordered()->Keys());
 }
 
 =pod
@@ -308,7 +340,7 @@ sub get_properties {
 
   $self->_check_object();
 
-  return($self->_get_ordered()->FETCH($$params{selector}));
+  return($self->_ordered()->FETCH($$params{selector}));
 }
 
 =pod
@@ -329,7 +361,7 @@ sub check_selector {
 
   $self->_check_object();
 
-  return($self->_get_ordered()->EXISTS($$params{selector}));
+  return($self->_ordered()->EXISTS($$params{selector}));
 }
 
 =pod
@@ -357,10 +389,10 @@ sub modify_selector {
   #if the selector is found, replace the selector
   if ($self->check_selector({selector => $$params{selector}})) {
     #we probably want to be doing this explicitely
-    my ($index) = $self->_get_ordered()->Indices( $$params{selector} );
+    my ($index) = $self->_ordered()->Indices( $$params{selector} );
     my $properties = $self->get_properties({selector => $$params{selector}});
 
-    $self->_get_ordered()->Replace($index,$properties,$$params{new_selector});
+    $self->_ordered()->Replace($index,$properties,$$params{new_selector});
   }
   #otherwise new element, stick it onto the end of the rulesets
   else {
@@ -397,14 +429,14 @@ sub add_selector {
   #if we existed already, invoke REPLACE to preserve selectivity
   if ($self->check_selector({selector => $$params{selector}})) {
     #we probably want to be doing this explicitely
-    my ($index) = $self->_get_ordered()->Indices( $$params{selector} );
+    my ($index) = $self->_ordered()->Indices( $$params{selector} );
 
-    $self->_get_ordered()->Replace($index,dclone($$params{properties}));
+    $self->_ordered()->Replace($index,dclone($$params{properties}));
   }
   #new element, stick it onto the end of the rulesets
   else {
     #store the properties
-    $self->_get_ordered()->STORE($$params{selector},dclone($$params{properties}));
+    $self->_ordered()->STORE($$params{selector},dclone($$params{properties}));
   }
 
   return();
@@ -466,7 +498,7 @@ sub delete_selector {
   $self->_check_object();
 
   #store the properties, potentially overwriting properties that were there
-  $self->_get_ordered()->DELETE($$params{selector});
+  $self->_ordered()->DELETE($$params{selector});
 
   return();
 }
@@ -512,30 +544,24 @@ sub _check_object {
   my ($self,$params) = @_;
 
   unless ($self && ref $self) {
-    die "You must instantiate this class in order to properly use it";
+    croak "You must instantiate this class in order to properly use it";
   }
 
   return();
 }
 
-sub _get_ordered {
-  my ($self,$params) = @_;
-
-  $self->_check_object();
-
-  return($self->{ordered});
-}
-
-sub _report_error {
+sub _report_warning {
   my ($self,$params) = @_;
 
   $self->_check_object();
 
   if ($self->{suppress_errors}) {
-    warn $$params{info};
+    my $warnings = $self->_content_warnings();
+    push @{$warnings}, $$params{info};
+    $self->_content_warnings($warnings);
   }
   else {
-    die $$params{info};
+    croak $$params{info};
   }
 
   return();
