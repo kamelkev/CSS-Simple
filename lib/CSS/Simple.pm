@@ -296,6 +296,27 @@ sub write {
   return $contents;
 }
 
+=pod
+    
+=item content_warnings()
+ 
+Return back any warnings thrown while parsing a given block of css
+
+Note: content warnings are initialized at read time. In order to 
+receive back content feedback you must perform read() first.
+
+=back 
+
+=cut
+
+sub content_warnings {
+  my ($self,$params) = @_;
+
+  $self->_check_object();
+
+  return $self->_content_warnings();
+}
+
 ####################################################################
 #                                                                  #
 # The following are all get/set methods for manipulating the       #
