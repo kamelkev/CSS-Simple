@@ -19,3 +19,12 @@
 	* Add new flag to constructor (suppress_error) to disable fatal errors, instead allowing warns
 	* Replace croaks with dies
 	* Add test to make sure suppress_error flag works
+
+xxxx	xxxx		Kevin Kamel <kamelkev@mailermailer.com>
+
+	* Add getter/setter autogenerator code
+	* Rework private methods to suit error reporting better
+	* Rewrite fatal errors flag (previously suppress_error) to instead work as the inverse
+	* Rename suppress_error to warn_as_error to better describe it's current functionality
+	* Update tests to test updated flag properly
+	* Update documentation
