@@ -49,7 +49,7 @@ See the read method for more information.
 =cut
 
 BEGIN {
-  my $members = ['ordered','stylesheet','suppress_errors','content_warnings'];
+  my $members = ['ordered','stylesheet','warns_as_errors','content_warnings'];
 
   #generate all the getter/setter we need
   foreach my $member (@{$members}) {
@@ -77,7 +77,7 @@ BEGIN {
 
 Instantiates the CSS::Simple object. Sets up class variables that are used during file parsing/processing.
 
-B<suppress_errors> (optional). Boolean value to indicate whether fatal errors should occur during parse failures.
+B<warns_as_errors> (optional). Boolean value to indicate whether fatal errors should occur during parse failures.
 
 =back
 =cut
@@ -93,7 +93,7 @@ sub new {
               stylesheet => undef,
               ordered => tie(%{$css}, 'Tie::IxHash'),
               content_warnings => undef,
-              suppress_errors => (defined($$params{suppress_errors}) && $$params{suppress_errors}) ? 1 : 0
+              warns_as_errors => (defined($$params{warns_as_errors}) && $$params{warns_as_errors}) ? 1 : 0
              };
 
   bless $self, $class;
@@ -555,13 +555,13 @@ sub _report_warning {
 
   $self->_check_object();
 
-  if ($self->{suppress_errors}) {
+  if ($self->{warns_as_errors}) {
+    croak $$params{info};
+  }
+  else {
     my $warnings = $self->_content_warnings();
     push @{$warnings}, $$params{info};
     $self->_content_warnings($warnings);
-  }
-  else {
-    croak $$params{info};
   }
 
   return();
