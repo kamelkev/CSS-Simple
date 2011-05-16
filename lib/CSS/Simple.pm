@@ -68,7 +68,8 @@ BEGIN {
 }
 
 
-=pod 
+=pod
+
 =head1 CONSTRUCTOR
 
 =over 4
@@ -80,6 +81,7 @@ Instantiates the CSS::Simple object. Sets up class variables that are used durin
 B<warns_as_errors> (optional). Boolean value to indicate whether fatal errors should occur during parse failures.
 
 =back
+
 =cut
 
 sub new {
@@ -304,8 +306,6 @@ Return back any warnings thrown while parsing a given block of css
 
 Note: content warnings are initialized at read time. In order to 
 receive back content feedback you must perform read() first.
-
-=back 
 
 =cut
 
