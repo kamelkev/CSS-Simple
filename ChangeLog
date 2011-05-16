@@ -20,7 +20,7 @@
 	* Replace croaks with dies
 	* Add test to make sure suppress_error flag works
 
-3208	2011-05-16	Kevin Kamel <kamelkev@mailermailer.com>
+3211	2011-05-16	Kevin Kamel <kamelkev@mailermailer.com>
 
 	* Add getter/setter autogenerator code
 	* Rework private methods to suit error reporting better
