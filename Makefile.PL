@@ -7,11 +7,18 @@ WriteMakefile(
 	'Carp' => 0,
         'Tie::IxHash' => 0
     },
-    dist => {
-	PREOP => 'pod2text lib/CSS/Simple.pm > README; ln -f README $(DISTVNAME)/README',
-    },
     VERSION_FROM => 'lib/CSS/Simple.pm',
     AUTHOR => 'Kevin Kamel <kamelkev@mailermailer.com>',
     ABSTRACT => 'Interface through which to read/write/manipulate CSS files while respecting the cascade order',
     LICENSE => 'perl',
 );
+
+
+sub MY::postamble {
+  return <<'MAKE_FRAG';
+all :: README
+
+README: lib/CSS/Simple.pm
+	pod2text $> > README
+MAKE_FRAG
+}
