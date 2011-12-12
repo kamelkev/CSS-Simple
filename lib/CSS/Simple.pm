@@ -30,11 +30,11 @@ CSS::Simple - Interface through which to read/write/manipulate CSS files while r
 
  my $css = new CSS::Simple();
 
- $css->read({ filename => 'input.css' });
+ $css->read_file({ filename => 'input.css' });
 
  #perform manipulations...
 
- $css->write({ filename => 'output.css' });
+ $css->write_file({ filename => 'output.css' });
 
 =head1 DESCRIPTION
 
