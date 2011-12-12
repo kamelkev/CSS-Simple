@@ -28,3 +28,7 @@
 	* Rename suppress_error to warn_as_error to better describe it's current functionality
 	* Update tests to test updated flag properly
 	* Update documentation
+
+3464	2011-12-12	Kevin Kamel <kamelkev@mailermailer.com>
+
+	* Fix SYNOPSIS block as suggested by Kate Yoak <kate@yoak.com>
