@@ -1,17 +1,8 @@
-# $Id$
-#
-# Copyright 2011 MailerMailer, LLC - http://www.mailermailer.com
-#
-# Based in large part on the CSS::Tiny CPAN Module
-# http://search.cpan.org/~adamk/CSS-Tiny/
-
 package CSS::Simple;
-
 use strict;
 use warnings;
 
-use vars qw($VERSION);
-$VERSION = sprintf "%d", q$Revision$ =~ /(\d+)/;
+our $VERSION = '3211';
 
 use Carp;
 
@@ -616,4 +607,3 @@ This program is free software; you can redistribute it and/or modify it under th
 The full text of the license can be found in the LICENSE file included with this module.
 
 =cut
-
