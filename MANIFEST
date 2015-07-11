@@ -4,6 +4,7 @@ MANIFEST
 Makefile.PL
 README
 t/basic.t
+t/browser_specific_properties.t
 t/create.t
 t/fail.t
 t/hacks.t
