@@ -40,7 +40,7 @@ See the read method for more information.
 =cut
 
 BEGIN {
-  my $members = ['ordered','stylesheet','warns_as_errors','content_warnings'];
+  my $members = ['ordered','stylesheet','warns_as_errors','content_warnings','browser_specific_properties'];
 
   #generate all the getter/setter we need
   foreach my $member (@{$members}) {
@@ -71,6 +71,8 @@ Instantiates the CSS::Simple object. Sets up class variables that are used durin
 
 B<warns_as_errors> (optional). Boolean value to indicate whether fatal errors should occur during parse failures.
 
+B<browser_specific_properties> (optional). Boolean value to indicate whether browser specific properties should be processed.
+
 =back
 
 =cut
@@ -86,7 +88,8 @@ sub new {
               stylesheet => undef,
               ordered => tie(%{$css}, 'Tie::IxHash'),
               content_warnings => undef,
-              warns_as_errors => (defined($$params{warns_as_errors}) && $$params{warns_as_errors}) ? 1 : 0
+              warns_as_errors => (defined($$params{warns_as_errors}) && $$params{warns_as_errors}) ? 1 : 0,
+              browser_specific_properties => (defined($$params{browser_specific_properties}) && $$params{browser_specific_properties}) ? 1 : 0
              };
 
   bless $self, $class;
@@ -168,7 +171,7 @@ sub read {
     $string =~ s!/\*.*?\*\/!!g;
 
     # Split into styles
-    foreach ( grep { /\S/ } split /(?<=\})/, $string ) {
+    foreach (grep { /\S/ } split /(?<=\})/, $string) {
 
       unless ( /^\s*([^{]+?)\s*\{(.*)\}\s*$/ ) {
         $self->_report_warning({ info => "Invalid or unexpected style data '$_'" });
@@ -185,9 +188,9 @@ sub read {
       my $properties = {};
       foreach ( grep { /\S/ } split /\;/, $props ) {
 
-        # skip over browser specific properties
-        if ((/^\s*[\*\-\_]/) || (/\\/)) {
-          next; 
+        # skip over browser specific properties unless specified in constructor
+        if (!$self->_browser_specific_properties() && (( /^\s*[*-_]/ ) || ( /\\/ ))) {
+          next;
         }
 
         # check if properties are valid, reporting error as configured        
