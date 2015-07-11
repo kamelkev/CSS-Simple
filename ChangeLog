@@ -29,6 +29,9 @@
 	* Update tests to test updated flag properly
 	* Update documentation
 
-3464	2011-12-12	Kevin Kamel <kamelkev@mailermailer.com>
+3220	2015-07-10	Kevin Kamel <kamelkev@mailermailer.com>
 
 	* Fix SYNOPSIS block as suggested by Kate Yoak <kate@yoak.com>
+	* Add new flag to constructor (browser_specific_properties) to allow inclusion of such properties
+	  as per patch provided by David Arnaud <arnaud.david@adestra.com>
+	* Fix issue with unclosed file handle as suggested by Mohammad Anwar <manwar@cpan.org>

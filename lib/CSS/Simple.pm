@@ -2,7 +2,7 @@ package CSS::Simple;
 use strict;
 use warnings;
 
-our $VERSION = '3211';
+our $VERSION = '3220';
 
 use Carp;
 
@@ -127,6 +127,7 @@ sub read_file {
 
   open FILE, "<", $$params{filename} or croak $!;
   my $css = do { local( $/ ) ; <FILE> } ;
+  close FILE;
 
   $self->read({css => $css});
 
