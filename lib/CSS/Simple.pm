@@ -2,7 +2,7 @@ package CSS::Simple;
 use strict;
 use warnings;
 
-our $VERSION = '3220';
+our $VERSION = '3223';
 
 use Carp;
 

@@ -35,3 +35,7 @@
 	* Add new flag to constructor (browser_specific_properties) to allow inclusion of such properties
 	  as per patch provided by David Arnaud <arnaud.david@adestra.com>
 	* Fix issue with unclosed file handle as suggested by Mohammad Anwar <manwar@cpan.org>
+
+3223	2016-07-26	Kevin Kamel <kamelkev@mailermailer.com>
+
+	* Apply keys on references test fix provided by Alexandr Ciornii <alexchorny@gmail.com>
