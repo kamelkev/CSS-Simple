@@ -10,6 +10,9 @@ WriteMakefile(
 	'Carp' => 0,
         'Tie::IxHash' => 0
     },
+    TEST_REQUIRES => {
+      'Test::More' => 0,
+    },
     'test' => {
 	TESTS => join(' ', map { glob } qw( t/*.t t/*/*.t )),
     },
@@ -17,6 +20,16 @@ WriteMakefile(
     AUTHOR => 'Kevin Kamel <kamelkev@mailermailer.com>',
     ABSTRACT => 'Interface through which to read/write/manipulate CSS files while respecting the cascade order',
     LICENSE => 'perl',
+    META_MERGE => {
+      'meta-spec' => { version => 2 },
+      resources => {
+        repository => {
+          type => 'git',
+          url => 'git://github.com/kamelkev/CSS-Simple.git',
+          web => 'https://github.com/kamelkev/CSS-Simple',
+        },
+      },
+    },
 );
 
 sub MY::postamble {
